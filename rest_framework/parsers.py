@@ -67,6 +67,23 @@ class JSONParser(BaseParser):
             raise ParseError('JSON parse error - %s' % six.text_type(exc))
 
 
+class JSONAPIParser(JSONParser):
+    """
+    Parses JSON-API serialized data.
+    """
+    media_type = 'application/vnd.api+json'
+    renderer_class = renderers.JSONAPIRenderer
+
+    def parse(self, stream, media_type=None, parser_context=None):
+        json = super(JSONAPIParser, self).parse(stream, media_type, parser_context)
+        data = json.get('data')
+        if isinstance(data, list):
+            raise ParseError('doesnt support array')
+        data.update({ k:v for k, v in data.get('attributes').iteritems()})
+        # maybe handle relationships
+
+        return data
+
 class FormParser(BaseParser):
     """
     Parser for form data.
